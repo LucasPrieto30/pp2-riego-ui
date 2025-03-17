@@ -56,11 +56,16 @@ public class RiegoUI extends JFrame implements Observer {
     }
 
     private void cargarSensoresDinamicos() {
-        sensoresDinamicos = PluginLoader.cargarPlugins();
+        List<PluginSensor> sensores = PluginLoader.cargarPlugins();
 
-        for (PluginSensor s : sensoresDinamicos) {
-            JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.obtenerValor() + "%");
+        if (sensores.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No se encontraron sensores dinámicos.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
+        }
+
+        for (PluginSensor s : sensores) {
+            JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.obtenerValor());
             panelSensores.add(label);
+            System.out.println("📌 Sensor agregado a la UI: " + s.getClass().getSimpleName());
         }
 
         panelSensores.revalidate();
