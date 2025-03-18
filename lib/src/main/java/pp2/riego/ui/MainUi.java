@@ -13,13 +13,5 @@ public class MainUi {
         // Crear la UI en el hilo de eventos de Swing
         SwingUtilities.invokeLater(() -> new RiegoUI(sensor));
 
-        // 📌 Agregar un Timer para medir automáticamente cada 3 segundos
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                sensor.medir();  // 📌 Se genera una nueva medición
-            }
-        }, 0, 3000);
     }
 }
