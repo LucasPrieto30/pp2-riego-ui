@@ -56,18 +56,6 @@ public class RiegoUI extends JFrame implements Observer {
         add(panelBotones, BorderLayout.SOUTH);
 
         setVisible(true);
-        
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                sensorHumedad.medir(); // 📌 Actualiza la humedad
-
-                for (Sensor sensor : sensoresDinamicos) {
-                    sensor.medir(); // 📌 Actualiza los sensores dinámicos
-                }
-            }
-        }, 0, 3000);
     }
 
     private void cargarSensoresDinamicos() {
@@ -97,7 +85,7 @@ public class RiegoUI extends JFrame implements Observer {
         SwingUtilities.invokeLater(() -> {
             JLabel label = sensoresLabels.get(sensor);
             if (label != null) {
-                label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValor() + "%");
+                label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValor());
             }
 
             actualizarEstadoRiego(sensor.necesitaRiego());
