@@ -22,32 +22,29 @@ public class RiegoUI extends JFrame implements Observer {
     private Map<Sensor, JLabel> sensoresLabels = new HashMap<>();
     private JPanel panelSensores;
     private JLabel labelRiego;
-    private DispositivoRiego riego;
-    private SensorHumedad sensorHumedad;
-    private List<Sensor> sensoresDinamicos = new ArrayList<>();
-
-    public RiegoUI(SensorHumedad sensor) {
-    	this.sensorHumedad = sensor;
-        this.riego = new DispositivoRiego(sensorHumedad);
-
-        sensor.agregarObservador(this); // 📌 La UI observa el sensor principal
-
+    private Controller controlador;
+    JButton btnCargarSensores;
+ 
+    public RiegoUI(Controller controlador) {
+        this.controlador = controlador;
+        Sensor sensorHumedad = controlador.getSensorHumedad();
         setTitle("Sistema de Riego Automático");
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Panel donde se mostrarán los sensores
         panelSensores = new JPanel(new GridLayout(0, 1));
+        JLabel humedadLabel = new JLabel("SensorHumedad: " + sensorHumedad.getValor() + "%");
+        panelSensores.add(humedadLabel);
+        sensoresLabels.put(sensorHumedad, humedadLabel);
+        sensorHumedad.agregarObservador(this);
 
-        // Estado del riego
+
         labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
 
-        // Botón para cargar sensores dinámicos
-        JButton btnCargarSensores = new JButton("Cargar Sensores Dinámicos");
+        btnCargarSensores = new JButton("Cargar Sensores Dinámicos");
         btnCargarSensores.addActionListener(e -> cargarSensoresDinamicos());
 
-        // Agregar todo al frame
         JPanel panelBotones = new JPanel();
         panelBotones.add(btnCargarSensores);
 
@@ -59,7 +56,8 @@ public class RiegoUI extends JFrame implements Observer {
     }
 
     private void cargarSensoresDinamicos() {
-        List<Sensor> sensores = PluginLoader.cargarPlugins();
+    	List<Sensor> sensores = controlador.cargarSensoresDinamicos();
+        controlador.agregarSensoresDinamicos(sensores);
 
         if (sensores.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No se encontraron sensores dinámicos.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
@@ -68,16 +66,16 @@ public class RiegoUI extends JFrame implements Observer {
         for (Sensor s : sensores) {
             JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.getValor());
             panelSensores.add(label);
-            sensoresLabels.put(s, label); // 📌 Guardamos para actualizar dinámicamente
-            sensoresDinamicos.add(s); // 📌 Ahora recordamos los sensores dinámicos
+            sensoresLabels.put(s, label);
 
-            s.agregarObservador(this); // 📌 La UI observará estos sensores
+            s.agregarObservador(this);
 
             System.out.println("📌 Sensor agregado a la UI: " + s.getClass().getSimpleName());
         }
 
         panelSensores.revalidate();
         panelSensores.repaint();
+        btnCargarSensores.setEnabled(false);
     }
 
     @Override
