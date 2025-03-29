@@ -1,46 +1,38 @@
 package pp2.riego.ui;
 
-import com.riego.DispositivoRiego;
+import com.riego.Observer;
 import com.riego.PluginLoader;
 import com.riego.Sensor;
-import com.riego.SensorHumedad;
+import com.riego.SmartWater;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Controller {
-    private DispositivoRiego dispositivoRiego;
-    private SensorHumedad sensorHumedad;
-    private List<Sensor> sensoresDinamicos;
-
-    public Controller(SensorHumedad sensorHumedad) {
-        this.sensorHumedad = sensorHumedad;
-        this.dispositivoRiego = new DispositivoRiego(sensorHumedad);
-        this.sensoresDinamicos = new ArrayList<>();
+public class Controller implements Observer {
+   private SmartWater smartWater;
+   private RiegoUI vista;
+	
+   public Controller(SmartWater smartWater, RiegoUI vista) {
+        this.smartWater = smartWater;
+        this.vista = vista;
+        
+        smartWater.getSensores().forEach(s -> s.agregarObservador(this));
     }
 
-    public void agregarSensoresDinamicos(List<Sensor> sensores) {
-        this.sensoresDinamicos.addAll(sensores);
-        for (Sensor sensor : sensores) {
-            sensor.agregarObservador(dispositivoRiego);
-        }
-    }
 
-    public DispositivoRiego getDispositivoRiego() {
-        return dispositivoRiego;
-    }
+   public List<Sensor> cargarSensoresDinamicos() {
+       List<Sensor> sensores = PluginLoader.cargarPlugins();
+       for (Sensor sensor : sensores) {
+    	   smartWater.agregarSensor(sensor);
+           sensor.agregarObservador((Observer) this);
+       }
+       return sensores;
+   }
 
-    public List<Sensor> getSensoresDinamicos() {
-        return sensoresDinamicos;
-    }
-    
-    public List<Sensor> cargarSensoresDinamicos() {
-        List<Sensor> sensores = PluginLoader.cargarPlugins();
-        agregarSensoresDinamicos(sensores);
-        return sensores;
-    }
-    
-    public Sensor getSensorHumedad() {
-        return sensorHumedad;
-    }
+
+	@Override
+	public void actualizar(Sensor sensor) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
