@@ -21,7 +21,8 @@ public class RiegoUI extends JFrame implements Observer {
 	private JLabel labelRiego;
     private Map<Sensor, JLabel> sensoresLabels = new HashMap<>();
     JButton btnCargarSensores;
- 
+    JLabel labelSinSensores;
+    
     public RiegoUI(SmartWater modelo) {
     	this.modelo = modelo;
     	
@@ -41,9 +42,13 @@ public class RiegoUI extends JFrame implements Observer {
         setLayout(new BorderLayout());
 
         labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
-        
+        labelSinSensores = new JLabel("No hay sensores cargados aún.");
         panelSensores = new JPanel(new GridLayout(0, 1));
+        if (modelo.getSensores().isEmpty()) {
+            panelSensores.add(labelSinSensores);
+        }
         for (Sensor sensor : modelo.getSensores()) {
+        	panelSensores.remove(labelSinSensores);
             JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValor());
             panelSensores.add(label);
             sensoresLabels.put(sensor, label);
@@ -71,12 +76,12 @@ public class RiegoUI extends JFrame implements Observer {
         if (sensores.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No se encontraron sensores dinámicos.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
         }
-
+        panelSensores.remove(labelSinSensores);
         for (Sensor s : sensores) {
             JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.getValor());
             panelSensores.add(label);
             sensoresLabels.put(s, label);
-
+            s.agregarObservador(this);
             System.out.println(" Sensor agregado a la UI: " + s.getClass().getSimpleName());
         }
 
