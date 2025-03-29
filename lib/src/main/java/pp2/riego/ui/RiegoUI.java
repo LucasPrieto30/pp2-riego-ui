@@ -14,7 +14,7 @@ import java.awt.*;
 
 public class RiegoUI extends JFrame implements Observer {
 	
-	private SmartWater modelo;
+	private SmartWater smartWater;
 	private Controller controlador;
 	
 	private JPanel panelSensores;
@@ -23,12 +23,12 @@ public class RiegoUI extends JFrame implements Observer {
     JButton btnCargarSensores;
     JLabel labelSinSensores;
     
-    public RiegoUI(SmartWater modelo) {
-    	this.modelo = modelo;
+    public RiegoUI(SmartWater smartWater) {
+    	this.smartWater = smartWater;
     	
-    	modelo.getSensores().forEach(s -> s.agregarObservador(this));
+    	smartWater.getSensores().forEach(s -> s.agregarObservador(this));
     	
-    	controlador = new Controller(modelo, this);
+    	controlador = new Controller(smartWater, this);
     	
     	inicializar();
 
@@ -44,10 +44,10 @@ public class RiegoUI extends JFrame implements Observer {
         labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
         labelSinSensores = new JLabel("No hay sensores cargados aún.");
         panelSensores = new JPanel(new GridLayout(0, 1));
-        if (modelo.getSensores().isEmpty()) {
+        if (smartWater.getSensores().isEmpty()) {
             panelSensores.add(labelSinSensores);
         }
-        for (Sensor sensor : modelo.getSensores()) {
+        for (Sensor sensor : smartWater.getSensores()) {
         	panelSensores.remove(labelSinSensores);
             JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValor());
             panelSensores.add(label);
