@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.awt.*;
 
-
 public class RiegoUI extends JFrame implements Observer {
 	
 	private SmartWater smartWater;
@@ -49,12 +48,12 @@ public class RiegoUI extends JFrame implements Observer {
         }
         for (Sensor sensor : smartWater.getSensores()) {
         	panelSensores.remove(labelSinSensores);
-            JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValor());
+            JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
             panelSensores.add(label);
             sensoresLabels.put(sensor, label);
         }
         
-        btnCargarSensores = new JButton("Cargar Sensores Dinámicos");
+        btnCargarSensores = new JButton("Cargar Sensores");
         btnCargarSensores.addActionListener(e -> cargarSensoresDinamicos());
         
 
@@ -71,14 +70,14 @@ public class RiegoUI extends JFrame implements Observer {
     }
 
     private void cargarSensoresDinamicos() {
-    	List<Sensor> sensores = controlador.cargarSensoresDinamicos();
+    	List<Sensor> sensores = controlador.cargarSensores();
 
         if (sensores.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No se encontraron sensores dinámicos.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No se encontraron sensores.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
         }
         panelSensores.remove(labelSinSensores);
         for (Sensor s : sensores) {
-            JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.getValor());
+            JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.getValorMedido());
             panelSensores.add(label);
             sensoresLabels.put(s, label);
             s.agregarObservador(this);
@@ -95,7 +94,7 @@ public class RiegoUI extends JFrame implements Observer {
         SwingUtilities.invokeLater(() -> {
             JLabel label = sensoresLabels.get(sensor);
             if (label != null) {
-                label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValor());
+                label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
             }
 
             actualizarEstadoRiego(sensor.necesitaRiego());
