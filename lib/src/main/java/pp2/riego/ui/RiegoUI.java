@@ -1,15 +1,11 @@
 package pp2.riego.ui;
 
 import javax.swing.*;
-
 import com.riego.Aspersor;
-import com.riego.EvaluadorRiego;
 import com.riego.Observer;
 import com.riego.Sensor;
 import com.riego.SmartWater;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.awt.*;
 
@@ -77,7 +73,7 @@ public class RiegoUI extends JFrame implements Observer {
 
     private void actualizarEstadoRiego(boolean riegoActivo) {
         if (riegoActivo) {
-            labelRiego.setText("Estado del Riego: ACTIVADO 💧");
+            labelRiego.setText("Estado del Riego: ACTIVADO ");
         } else {
             labelRiego.setText("Estado del Riego: DESACTIVADO ❌");
         }
