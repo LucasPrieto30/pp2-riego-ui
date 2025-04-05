@@ -2,6 +2,8 @@ package pp2.riego.ui;
 
 import javax.swing.*;
 
+import com.riego.Aspersor;
+import com.riego.EvaluadorRiego;
 import com.riego.Observer;
 import com.riego.Sensor;
 import com.riego.SmartWater;
@@ -15,19 +17,17 @@ public class RiegoUI extends JFrame implements Observer {
 	
 	private SmartWater smartWater;
 	private Controller controlador;
-	
+	private Aspersor aspersor;
 	private JPanel panelSensores;
 	private JLabel labelRiego;
     private Map<Sensor, JLabel> sensoresLabels = new HashMap<>();
-    JButton btnCargarSensores;
     JLabel labelSinSensores;
     
     public RiegoUI(SmartWater smartWater) {
     	this.smartWater = smartWater;
-    	
-    	smartWater.getSensores().forEach(s -> s.agregarObservador(this));
-    	
     	controlador = new Controller(smartWater, this);
+
+    	aspersor = this.smartWater.getAspersor();
     	
     	inicializar();
 
@@ -35,30 +35,25 @@ public class RiegoUI extends JFrame implements Observer {
     }
     
     private void inicializar() {
-        setTitle("Sistema de Riego Automático");
+        setTitle("SmartWater - Sistema de Riego");
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
-        labelSinSensores = new JLabel("No hay sensores cargados aún.");
         panelSensores = new JPanel(new GridLayout(0, 1));
-        if (smartWater.getSensores().isEmpty()) {
-            panelSensores.add(labelSinSensores);
-        }
-        for (Sensor sensor : smartWater.getSensores()) {
-        	panelSensores.remove(labelSinSensores);
-            JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
-            panelSensores.add(label);
-            sensoresLabels.put(sensor, label);
-        }
         
-        btnCargarSensores = new JButton("Cargar Sensores");
-        btnCargarSensores.addActionListener(e -> cargarSensoresDinamicos());
+        labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
         
 
-        JPanel panelBotones = new JPanel();
-        panelBotones.add(btnCargarSensores);
+        for (Sensor sensor : this.smartWater.getSensores()) {
+            JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
+            sensoresLabels.put(sensor, label);
+            panelSensores.add(label);
+            sensor.agregarObservador(this);
+        }
+
+        panelSensores.revalidate();
+        panelSensores.repaint();
         
         JPanel panelSuperior = new JPanel(new GridLayout(0, 1));
         panelSuperior.add(labelRiego);
@@ -66,27 +61,6 @@ public class RiegoUI extends JFrame implements Observer {
 
         add(panelSensores, BorderLayout.CENTER);
         add(panelSuperior, BorderLayout.NORTH);
-        add(panelBotones, BorderLayout.SOUTH);
-    }
-
-    private void cargarSensoresDinamicos() {
-    	List<Sensor> sensores = controlador.cargarSensores();
-
-        if (sensores.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No se encontraron sensores.", "Carga de Sensores", JOptionPane.WARNING_MESSAGE);
-        }
-        panelSensores.remove(labelSinSensores);
-        for (Sensor s : sensores) {
-            JLabel label = new JLabel(s.getClass().getSimpleName() + ": " + s.getValorMedido());
-            panelSensores.add(label);
-            sensoresLabels.put(s, label);
-            s.agregarObservador(this);
-            System.out.println(" Sensor agregado a la UI: " + s.getClass().getSimpleName());
-        }
-
-        panelSensores.revalidate();
-        panelSensores.repaint();
-        btnCargarSensores.setEnabled(false);
     }
 
     @Override
@@ -97,8 +71,7 @@ public class RiegoUI extends JFrame implements Observer {
                 label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
             }
 
-            actualizarEstadoRiego(sensor.necesitaRiego());
-
+            actualizarEstadoRiego(aspersor.estaActivo());
         });
     }
 

@@ -18,17 +18,6 @@ public class Controller implements Observer {
         smartWater.getSensores().forEach(s -> s.agregarObservador(this));
     }
 
-
-   public List<Sensor> cargarSensores() {
-       List<Sensor> sensores = this.smartWater.buscarSensores();
-       for (Sensor sensor : sensores) {
-    	   smartWater.conectarSensorADispositivoRiego(sensor);
-    	   sensor.iniciarMediciones();
-           sensor.agregarObservador((Observer) this);
-       }
-       return sensores;
-   }
-
 	@Override
 	public void actualizar(Sensor sensor) {
 		// TODO Auto-generated method stub
