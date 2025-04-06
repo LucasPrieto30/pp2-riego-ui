@@ -1,11 +1,9 @@
 package pp2.riego.ui;
 
+import java.util.List;
 import com.riego.Observer;
-import com.riego.PluginLoader;
 import com.riego.Sensor;
 import com.riego.SmartWater;
-
-import java.util.List;
 
 public class Controller implements Observer {
    private SmartWater smartWater;
@@ -18,6 +16,13 @@ public class Controller implements Observer {
         smartWater.getSensores().forEach(s -> s.agregarObservador(this));
     }
 
+   public boolean riegoEstaActivo() {
+	   return this.smartWater.riegoActivado();
+   }
+   
+   public List<Sensor> getSensores() {
+	   return this.smartWater.getSensores();
+   }
 	@Override
 	public void actualizar(Sensor sensor) {
 		// TODO Auto-generated method stub

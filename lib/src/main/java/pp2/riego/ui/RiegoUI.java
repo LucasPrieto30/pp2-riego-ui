@@ -1,7 +1,6 @@
 package pp2.riego.ui;
 
 import javax.swing.*;
-import com.riego.Aspersor;
 import com.riego.Observer;
 import com.riego.Sensor;
 import com.riego.SmartWater;
@@ -11,19 +10,14 @@ import java.awt.*;
 
 public class RiegoUI extends JFrame implements Observer {
 	
-	private SmartWater smartWater;
 	private Controller controlador;
-	private Aspersor aspersor;
 	private JPanel panelSensores;
 	private JLabel labelRiego;
     private Map<Sensor, JLabel> sensoresLabels = new HashMap<>();
     JLabel labelSinSensores;
     
     public RiegoUI(SmartWater smartWater) {
-    	this.smartWater = smartWater;
     	controlador = new Controller(smartWater, this);
-
-    	aspersor = this.smartWater.getAspersor();
     	
     	inicializar();
 
@@ -41,7 +35,7 @@ public class RiegoUI extends JFrame implements Observer {
         labelRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
         
 
-        for (Sensor sensor : this.smartWater.getSensores()) {
+        for (Sensor sensor : controlador.getSensores()) {
             JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
             sensoresLabels.put(sensor, label);
             panelSensores.add(label);
@@ -67,7 +61,7 @@ public class RiegoUI extends JFrame implements Observer {
                 label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
             }
 
-            actualizarEstadoRiego(aspersor.estaActivo());
+            actualizarEstadoRiego(controlador.riegoEstaActivo());
         });
     }
 
