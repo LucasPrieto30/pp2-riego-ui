@@ -54,11 +54,11 @@ public class RiegoUI extends JFrame implements Observer {
     }
 
     @Override
-    public void actualizar(Sensor sensor) {
+    public void actualizar(Sensor sensor, int medicion) {
         SwingUtilities.invokeLater(() -> {
             JLabel label = sensoresLabels.get(sensor);
             if (label != null) {
-                label.setText(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido());
+                label.setText(sensor.getClass().getSimpleName() + ": " + medicion);
             }
 
             actualizarEstadoRiego(controlador.riegoEstaActivo());

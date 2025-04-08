@@ -24,7 +24,7 @@ public class Controller implements Observer {
 	   return this.smartWater.getSensores();
    }
 	@Override
-	public void actualizar(Sensor sensor) {
+	public void actualizar(Sensor sensor, int medicion) {
 		// TODO Auto-generated method stub
 		
 	}
