@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.LucasPrieto30:pp2-riego-core:65fea5db63'
+    implementation 'com.github.LucasPrieto30:pp2-riego-core:9ca515dca8'
     implementation 'org.json:json:20210307'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 }
