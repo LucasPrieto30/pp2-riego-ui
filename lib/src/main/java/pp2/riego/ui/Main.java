@@ -1,13 +1,14 @@
 package pp2.riego.ui;
 
 import javax.swing.*;
-import com.riego.SmartWater;
-import com.riego.SmartWaterFactory;
+
+import com.riego.SmartAqua;
+import com.riego.SmartAquaFactory;
 
 public class Main {
     public static void main(String[] args) {
-    	SmartWater smartWater = SmartWaterFactory.crear("plugins/config/config.json");
+    	SmartAqua smartAqua = SmartAquaFactory.crear("plugins/config/config.json");
         
-        SwingUtilities.invokeLater(() -> new RiegoUI(smartWater));
+        SwingUtilities.invokeLater(() -> new RiegoUI(smartAqua));
     }
 }

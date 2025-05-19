@@ -1,76 +1,85 @@
 package pp2.riego.ui;
 
 import javax.swing.*;
+
+import com.riego.Evaluador;
 import com.riego.Observer;
-import com.riego.Sensor;
-import com.riego.SmartWater;
+import com.riego.SmartAqua;
 import java.util.HashMap;
 import java.util.Map;
 import java.awt.*;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class RiegoUI extends JFrame implements Observer {
-
+    
     private Controller controlador;
-    private JPanel panelSensores;
     private JLabel labelRiego;
-    private Map<Sensor, JLabel> sensoresLabels = new HashMap<>();
-    private JLabel labelSinSensores;
+    private JPanel panelEvaluadores;
+    private JTextArea historialActivaciones;
+    private Map<Evaluador, JLabel> evaluadorLabels = new HashMap<>();
+    private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    public RiegoUI(SmartWater smartWater) {
-        controlador = new Controller(smartWater, this);
+    public RiegoUI(SmartAqua smartAqua) {
+        this.controlador = new Controller(smartAqua, this);
         inicializar();
         setVisible(true);
     }
 
     private void inicializar() {
-        setTitle("🌿 SmartWater - Sistema de Riego Automático");
-        setBounds(20, 300, 450, 300);
+        setTitle("SmartAqua - Sistema de Riego");
+        setSize(500, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        Font fuenteGrande = new Font("SansSerif", Font.BOLD, 18);
-        Font fuenteEstado = new Font("SansSerif", Font.BOLD, 20);
+        labelRiego = new JLabel("Estado del riego: --", SwingConstants.CENTER);
+        labelRiego.setFont(new Font("Arial", Font.BOLD, 18));
 
-        JPanel panelSuperior = new JPanel();
-        panelSuperior.setLayout(new BorderLayout());
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
+        panelEvaluadores = new JPanel(new GridLayout(0, 1));
+        JScrollPane scrollEvaluadores = new JScrollPane(panelEvaluadores);
 
-        labelRiego = new JLabel("Estado del Riego: ", SwingConstants.CENTER);
-        labelRiego.setFont(fuenteEstado);
-        panelSuperior.add(labelRiego, BorderLayout.CENTER);
+        historialActivaciones = new JTextArea(10, 40);
+        historialActivaciones.setEditable(false);
+        JScrollPane scrollHistorial = new JScrollPane(historialActivaciones);
+        scrollHistorial.setBorder(BorderFactory.createTitledBorder("Historial de Activaciones"));
 
-        panelSensores = new JPanel();
-        panelSensores.setLayout(new BoxLayout(panelSensores, BoxLayout.Y_AXIS));
-        panelSensores.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
-
-        for (Sensor sensor : controlador.getSensores()) {
-            JLabel label = new JLabel(sensor.getClass().getSimpleName() + ": " + sensor.getValorMedido() + " %");
-            label.setFont(fuenteGrande);
-            label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-            sensoresLabels.put(sensor, label);
-            panelSensores.add(label);
-            sensor.agregarObservador(this);
+        for (Evaluador eval : controlador.getEvaluadores()) {
+            JLabel label = new JLabel(descripcionEvaluador(eval));
+            evaluadorLabels.put(eval, label);
+            panelEvaluadores.add(label);
+            eval.agregarObservador(this);
         }
 
-        add(panelSuperior, BorderLayout.NORTH);
-        add(panelSensores, BorderLayout.CENTER);
+        JPanel panelTop = new JPanel(new BorderLayout());
+        panelTop.add(labelRiego, BorderLayout.NORTH);
+        panelTop.add(scrollEvaluadores, BorderLayout.CENTER);
 
+        add(panelTop, BorderLayout.CENTER);
+        add(scrollHistorial, BorderLayout.SOUTH);
+    }
+
+    private String descripcionEvaluador(Evaluador eval) {
+        return String.format("%s - Medición: %d - Umbral: %d - ¿Activa riego?: %s",
+                eval.getClass().getSimpleName(),
+                eval.getUltimaMedicion(),
+                eval.getUmbral(),
+                eval.getDebeRegar() ? "✅" : "❌");
     }
 
     @Override
-    public void actualizar(Sensor sensor, int medicion) {
+    public void actualizar(Evaluador evaluador, boolean activar) {
         SwingUtilities.invokeLater(() -> {
-            JLabel label = sensoresLabels.get(sensor);
-            if (label != null) {
-                label.setText(sensor.getClass().getSimpleName() + ": " + medicion + " %");
+            evaluadorLabels.get(evaluador).setText(descripcionEvaluador(evaluador));
+            labelRiego.setText("Estado del riego: " + (controlador.riegoEstaActivo() ? "ACTIVADO " : "DESACTIVADO "));
+
+            if (activar) {
+                String log = String.format("[%s] %s - Medición: %d - Umbral: %d ✅",
+                        LocalTime.now().format(timeFormatter),
+                        evaluador.getClass().getSimpleName(),
+                        evaluador.getUltimaMedicion(),
+                        evaluador.getUmbral());
+                historialActivaciones.append(log + "\n");
             }
-            actualizarEstadoRiego(controlador.riegoEstaActivo());
         });
-    }
-
-    private void actualizarEstadoRiego(boolean riegoActivo) {
-        labelRiego.setText("Estado del Riego: " + (riegoActivo ? "ACTIVADO 💧" : "DESACTIVADO ❌"));
-        labelRiego.setForeground(riegoActivo ? new Color(60, 179, 113) : new Color(0, 0, 0));
-
     }
 }

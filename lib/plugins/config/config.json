@@ -1,6 +1,7 @@
 {
   "ruta_plugins": "plugins/",
   "umbrales": {
-    "SensorHumedad": 50
+    "EvaluadorHumedad": 50,
+    "EvaluadorTemperatura": 25
   }
 }
