@@ -1,5 +1,5 @@
 {
-  "ruta_plugins": "plugins/",
+  "ruta_evaluadores": "plugins/",
   "umbrales": {
     "EvaluadorHumedad": 50,
     "EvaluadorTemperatura": 25

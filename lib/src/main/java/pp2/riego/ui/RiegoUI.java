@@ -11,75 +11,101 @@ import java.awt.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class RiegoUI extends JFrame implements Observer {
-    
-    private Controller controlador;
-    private JLabel labelRiego;
+public class RiegoUI extends JFrame {
+
+    private SmartAqua smartAqua;
+    private JLabel labelEstadoRiego;
     private JPanel panelEvaluadores;
-    private JTextArea historialActivaciones;
-    private Map<Evaluador, JLabel> evaluadorLabels = new HashMap<>();
-    private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private Map<Evaluador, JLabel> etiquetasEvaluadores;
+    private JTextArea areaHistorial;
 
     public RiegoUI(SmartAqua smartAqua) {
-        this.controlador = new Controller(smartAqua, this);
-        inicializar();
+        this.smartAqua = smartAqua;
+        this.etiquetasEvaluadores = new HashMap<>();
+        inicializarUI();
         setVisible(true);
     }
 
-    private void inicializar() {
+    private void inicializarUI() {
         setTitle("SmartAqua - Sistema de Riego");
-        setSize(500, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 500);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        labelRiego = new JLabel("Estado del riego: --", SwingConstants.CENTER);
-        labelRiego.setFont(new Font("Arial", Font.BOLD, 18));
+        // Panel superior
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        labelEstadoRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
+        labelEstadoRiego.setFont(new Font("Arial", Font.BOLD, 16));
+        panelSuperior.add(labelEstadoRiego, BorderLayout.CENTER);
 
+        JButton btnEvaluar = new JButton("Evaluar Condiciones");
+        btnEvaluar.addActionListener(e -> evaluarCondiciones());
+        panelSuperior.add(btnEvaluar, BorderLayout.EAST);
+
+        // Panel centro - Evaluadores
         panelEvaluadores = new JPanel(new GridLayout(0, 1));
         JScrollPane scrollEvaluadores = new JScrollPane(panelEvaluadores);
 
-        historialActivaciones = new JTextArea(10, 40);
-        historialActivaciones.setEditable(false);
-        JScrollPane scrollHistorial = new JScrollPane(historialActivaciones);
-        scrollHistorial.setBorder(BorderFactory.createTitledBorder("Historial de Activaciones"));
-
-        for (Evaluador eval : controlador.getEvaluadores()) {
-            JLabel label = new JLabel(descripcionEvaluador(eval));
-            evaluadorLabels.put(eval, label);
-            panelEvaluadores.add(label);
-            eval.agregarObservador(this);
+        for (Evaluador evaluador : smartAqua.getEvaluadores()) {
+            JLabel etiqueta = new JLabel(nombreEvaluador(evaluador));
+            etiqueta.setFont(new Font("Arial", Font.PLAIN, 14));
+            etiquetasEvaluadores.put(evaluador, etiqueta);
+            panelEvaluadores.add(etiqueta);
         }
 
-        JPanel panelTop = new JPanel(new BorderLayout());
-        panelTop.add(labelRiego, BorderLayout.NORTH);
-        panelTop.add(scrollEvaluadores, BorderLayout.CENTER);
+        // Panel inferior - Historial
+        areaHistorial = new JTextArea(6, 20);
+        areaHistorial.setEditable(false);
+        areaHistorial.setLineWrap(true);
+        areaHistorial.setWrapStyleWord(true);
+        JScrollPane scrollHistorial = new JScrollPane(areaHistorial);
+        scrollHistorial.setBorder(BorderFactory.createTitledBorder("Historial de Activaciones"));
 
-        add(panelTop, BorderLayout.CENTER);
+        add(panelSuperior, BorderLayout.NORTH);
+        add(scrollEvaluadores, BorderLayout.CENTER);
         add(scrollHistorial, BorderLayout.SOUTH);
     }
 
-    private String descripcionEvaluador(Evaluador eval) {
-        return String.format("%s - Medición: %d - Umbral: %d - ¿Activa riego?: %s",
-                eval.getClass().getSimpleName(),
-                eval.getUltimaMedicion(),
-                eval.getUmbral(),
-                eval.getDebeRegar() ? "✅" : "❌");
+    private void evaluarCondiciones() {
+        for (Evaluador evaluador : smartAqua.getEvaluadores()) {
+            evaluador.evaluar();
+            actualizarEtiqueta(evaluador);
+        }
+
+        actualizarEstadoRiego();
+        actualizarHistorial();
     }
 
-    @Override
-    public void actualizar(Evaluador evaluador, boolean activar) {
-        SwingUtilities.invokeLater(() -> {
-            evaluadorLabels.get(evaluador).setText(descripcionEvaluador(evaluador));
-            labelRiego.setText("Estado del riego: " + (controlador.riegoEstaActivo() ? "ACTIVADO " : "DESACTIVADO "));
+    private void actualizarEtiqueta(Evaluador evaluador) {
+        JLabel etiqueta = etiquetasEvaluadores.get(evaluador);
+        if (etiqueta != null) {
+            String hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            String texto = nombreEvaluador(evaluador)
+                    + " | Medición: " + evaluador.getUltimaMedicion()
+                    + " | Umbral: " + evaluador.getUmbral()
+                    + " | [" + hora + "]";
+            etiqueta.setText(texto);
+        }
+    }
 
-            if (activar) {
-                String log = String.format("[%s] %s - Medición: %d - Umbral: %d ✅",
-                        LocalTime.now().format(timeFormatter),
-                        evaluador.getClass().getSimpleName(),
-                        evaluador.getUltimaMedicion(),
-                        evaluador.getUmbral());
-                historialActivaciones.append(log + "\n");
-            }
-        });
+    private void actualizarEstadoRiego() {
+        boolean activo = smartAqua.riegoActivado();
+        if (activo) {
+            labelEstadoRiego.setText("Estado del Riego: ACTIVADO");
+        } else {
+            labelEstadoRiego.setText("Estado del Riego: DESACTIVADO");
+        }
+    }
+
+    private void actualizarHistorial() {
+        StringBuilder historial = new StringBuilder();
+        for (String linea : smartAqua.getLogger().getLogs()) {
+            historial.append(linea).append("\n");
+        }
+        areaHistorial.setText(historial.toString());
+    }
+
+    private String nombreEvaluador(Evaluador e) {
+        return e.getClass().getSimpleName();
     }
 }
