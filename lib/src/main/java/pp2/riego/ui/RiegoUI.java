@@ -11,49 +11,45 @@ import java.awt.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class RiegoUI extends JFrame {
+public class RiegoUI extends JFrame implements Observer {
 
-    private SmartAqua smartAqua;
     private JLabel labelEstadoRiego;
     private JPanel panelEvaluadores;
     private Map<Evaluador, JLabel> etiquetasEvaluadores;
     private JTextArea areaHistorial;
+    private Controller controlador;
 
     public RiegoUI(SmartAqua smartAqua) {
-        this.smartAqua = smartAqua;
+    	this.controlador = new Controller(smartAqua, this);
         this.etiquetasEvaluadores = new HashMap<>();
         inicializarUI();
         setVisible(true);
     }
 
     private void inicializarUI() {
+    	for (Evaluador evaluador : controlador.getEvaluadores()) {
+    	    evaluador.agregarObservador(this);
+    	}
         setTitle("SmartAqua - Sistema de Riego");
         setSize(600, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Panel superior
         JPanel panelSuperior = new JPanel(new BorderLayout());
         labelEstadoRiego = new JLabel("Estado del Riego: --", SwingConstants.CENTER);
         labelEstadoRiego.setFont(new Font("Arial", Font.BOLD, 16));
         panelSuperior.add(labelEstadoRiego, BorderLayout.CENTER);
 
-        JButton btnEvaluar = new JButton("Evaluar Condiciones");
-        btnEvaluar.addActionListener(e -> evaluarCondiciones());
-        panelSuperior.add(btnEvaluar, BorderLayout.EAST);
-
-        // Panel centro - Evaluadores
         panelEvaluadores = new JPanel(new GridLayout(0, 1));
         JScrollPane scrollEvaluadores = new JScrollPane(panelEvaluadores);
 
-        for (Evaluador evaluador : smartAqua.getEvaluadores()) {
+        for (Evaluador evaluador : controlador.getEvaluadores()) {
             JLabel etiqueta = new JLabel(nombreEvaluador(evaluador));
             etiqueta.setFont(new Font("Arial", Font.PLAIN, 14));
             etiquetasEvaluadores.put(evaluador, etiqueta);
             panelEvaluadores.add(etiqueta);
         }
 
-        // Panel inferior - Historial
         areaHistorial = new JTextArea(6, 20);
         areaHistorial.setEditable(false);
         areaHistorial.setLineWrap(true);
@@ -67,7 +63,7 @@ public class RiegoUI extends JFrame {
     }
 
     private void evaluarCondiciones() {
-        for (Evaluador evaluador : smartAqua.getEvaluadores()) {
+        for (Evaluador evaluador : controlador.getEvaluadores()) {
             evaluador.evaluar();
             actualizarEtiqueta(evaluador);
         }
@@ -89,7 +85,7 @@ public class RiegoUI extends JFrame {
     }
 
     private void actualizarEstadoRiego() {
-        boolean activo = smartAqua.riegoActivado();
+        boolean activo = controlador.riegoEstaActivo();
         if (activo) {
             labelEstadoRiego.setText("Estado del Riego: ACTIVADO");
         } else {
@@ -99,7 +95,7 @@ public class RiegoUI extends JFrame {
 
     private void actualizarHistorial() {
         StringBuilder historial = new StringBuilder();
-        for (String linea : smartAqua.getLogger().getLogs()) {
+        for (String linea : controlador.getLogs()) {
             historial.append(linea).append("\n");
         }
         areaHistorial.setText(historial.toString());
@@ -108,4 +104,11 @@ public class RiegoUI extends JFrame {
     private String nombreEvaluador(Evaluador e) {
         return e.getClass().getSimpleName();
     }
+
+	@Override
+	public void actualizar(Evaluador evaluador, boolean debeRegar) {
+		actualizarEstadoRiego();
+		actualizarEtiqueta(evaluador);
+		actualizarHistorial();
+	}
 }

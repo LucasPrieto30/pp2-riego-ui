@@ -10,5 +10,7 @@ public class Main {
     	SmartAqua smartAqua = SmartAquaFactory.crear("plugins/config/config.json");
         
         SwingUtilities.invokeLater(() -> new RiegoUI(smartAqua));
+
+        SwingUtilities.invokeLater(() -> new TimeUI(smartAqua).setState(JFrame.ICONIFIED));
     }
 }

@@ -24,10 +24,13 @@ public class Controller implements Observer {
    public List<Evaluador> getEvaluadores() {
 	   return this.smartAqua.getEvaluadores();
    }
+   
+   public List<String> getLogs() {
+	   return this.smartAqua.getLogger().getLogs();
+   }
 	@Override
 	public void actualizar(Evaluador evaluador, boolean debeRegar) {
 		// TODO Auto-generated method stub
 		
 	}
-
 }
